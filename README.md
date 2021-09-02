@@ -24,7 +24,7 @@ Above the list, there are several disfunctional checkboxes, which should add cou
 
 1. Leaving them all unchecked should display all countries.
 2. Checking one of the checkboxes should only fetch users from that specific country.
-3. Checking several checkboxes should fetch users from all of the selected countries.
+3. Checking several checkboxes should fetch users from all of the selected countries. 
 
 #### Bonus:
 
