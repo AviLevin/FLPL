@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Text from "../Text/Text";
 import Spinner from "../Spinner/Spinner";
 import CheckBox from "../CheckBox/CheckBox";
@@ -6,7 +6,9 @@ import IconButton from "@material-ui/core/IconButton";
 import FavoriteIcon from "@material-ui/icons/Favorite";
 import * as S from "./style";
 
-const UserList = ({ tab, users, isLoading, countries, toggleCountry }) => {
+const UserList = ({ tab, users, setPage, isLoading, countries, toggleCountry }) => {
+  const usersList = useRef();
+
   const [favorites, setFavorites] = useState([]);
   const [hoveredUserId, setHoveredUserId] = useState("");
 
@@ -18,6 +20,14 @@ const UserList = ({ tab, users, isLoading, countries, toggleCountry }) => {
 
   const handleMouseLeave = () => {
     setHoveredUserId("");
+  };
+
+  const scrollPos = () => {
+    const el = usersList.current;
+
+    if (el.scrollHeight - el.offsetHeight - el.scrollTop === 0) {
+      setPage((page) => (page += 1));
+    }
   };
 
   const toggleFavorite = (user) => {
@@ -49,6 +59,10 @@ const UserList = ({ tab, users, isLoading, countries, toggleCountry }) => {
     if (favoriteUsers) {
       setFavorites(JSON.parse(favoriteUsers));
     }
+
+    usersList.current.addEventListener("scroll", scrollPos);
+
+    return () => window.removeEventListener("scroll", scrollPos);
   }, []);
 
   useEffect(() => {
@@ -71,73 +85,68 @@ const UserList = ({ tab, users, isLoading, countries, toggleCountry }) => {
         <CheckBox
           value="AU"
           label="Australia"
-          isChecked={countries && countries.includes("AU")}
+          isChecked={countries.includes("AU")}
           onChange={toggleCountry}
         />
         <CheckBox
           value="BR"
           label="Brazil"
-          isChecked={countries && countries.includes("BR")}
+          isChecked={countries.includes("BR")}
           onChange={toggleCountry}
         />
         <CheckBox
           value="CA"
           label="Canada"
-          isChecked={countries && countries.includes("CA")}
-          onChange={toggleCountry}
-        />
-        <CheckBox
-          value="CH"
-          label="Switzerland"
-          isChecked={countries && countries.includes("CH")}
+          isChecked={countries.includes("CA")}
           onChange={toggleCountry}
         />
         <CheckBox
           value="DE"
           label="Germany"
-          isChecked={countries && countries.includes("DE")}
+          isChecked={countries.includes("DE")}
+          onChange={toggleCountry}
+        />
+        <CheckBox
+          value="CH"
+          label="Switzerland"
+          isChecked={countries.includes("CH")}
           onChange={toggleCountry}
         />
       </S.Filters>
-      <S.List>
-        {userMap.length ? (
-          userMap.map((user) => {
-            return (
-              <S.User
-                key={user.login.uuid}
-                onMouseEnter={() => handleMouseEnter(user.login.uuid)}
-                onMouseLeave={handleMouseLeave}
+      <S.List ref={usersList}>
+        {userMap.map((user) => {
+          return (
+            <S.User
+              key={user.login.uuid}
+              onMouseEnter={() => handleMouseEnter(user.login.uuid)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <S.UserPicture src={user.picture.large} alt="" />
+              <S.UserInfo>
+                <Text size="22px" bold>
+                  {user.name.title} {user.name.first} {user.name.last}
+                </Text>
+                <Text size="14px">{user.email}</Text>
+                <Text size="14px">
+                  {user.location.street.number} {user.location.street.name}
+                </Text>
+                <Text size="14px">
+                  {user.location.city} {user.location.country}
+                </Text>
+              </S.UserInfo>
+              <S.IconButtonWrapper
+                isVisible={
+                  user.login.uuid === hoveredUserId || favorites.includes(user.login.uuid)
+                }
+                onClick={() => toggleFavorite(user)}
               >
-                <S.UserPicture src={user.picture.large} alt="" />
-                <S.UserInfo>
-                  <Text size="22px" bold>
-                    {user.name.title} {user.name.first} {user.name.last}
-                  </Text>
-                  <Text size="14px">{user.email}</Text>
-                  <Text size="14px">
-                    {user.location.street.number} {user.location.street.name}
-                  </Text>
-                  <Text size="14px">
-                    {user.location.city} {user.location.country}
-                  </Text>
-                </S.UserInfo>
-                <S.IconButtonWrapper
-                  isVisible={
-                    user.login.uuid === hoveredUserId ||
-                    favorites.includes(user.login.uuid)
-                  }
-                  onClick={() => toggleFavorite(user)}
-                >
-                  <IconButton>
-                    <FavoriteIcon color="error" />
-                  </IconButton>
-                </S.IconButtonWrapper>
-              </S.User>
-            );
-          })
-        ) : (
-          <Text size="24px">It's Empty Here!</Text>
-        )}
+                <IconButton>
+                  <FavoriteIcon color="error" />
+                </IconButton>
+              </S.IconButtonWrapper>
+            </S.User>
+          );
+        })}
 
         {isLoading && (
           <S.SpinnerWrapper>

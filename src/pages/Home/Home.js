@@ -7,6 +7,7 @@ import * as S from "./style";
 const Home = ({ tab }) => {
   const [initial, setInitial] = useState(true);
 
+  const [page, setPage] = useState(1);
   const [seed, setSeed] = useState("");
   const [countries, setCountries] = useState([]);
 
@@ -26,14 +27,14 @@ const Home = ({ tab }) => {
       }
 
       if (!(seedInLocalStorage || countriesInLocalStorage)) {
-        fetchUsers(countries);
+        fetchUsers(countries, "", page);
       }
 
       setInitial(false);
     } else {
-      fetchUsers(countries, seed);
+      fetchUsers(countries, seed, page);
     }
-  }, [countries, seed]);
+  }, [countries, seed, page]);
 
   const toggleCountry = (c) => {
     if (countries.includes(c)) {
@@ -64,6 +65,7 @@ const Home = ({ tab }) => {
         <UserList
           tab={tab}
           users={users}
+          setPage={setPage}
           isLoading={isLoading}
           countries={countries}
           toggleCountry={toggleCountry}
