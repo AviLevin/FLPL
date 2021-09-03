@@ -9,9 +9,13 @@ export const usePeopleFetch = () => {
     fetchUsers();
   }, []);
 
-  async function fetchUsers() {
+  async function fetchUsers(country = []) {
+    const Api = `https://randomuser.me/api/?results=25&page=1`;
+
+    const ApiUrl = country.length ? Api + `&nat=${country.join(",")}` : Api;
+
     setIsLoading(true);
-    const response = await axios.get(`https://randomuser.me/api/?results=25&page=1`);
+    const response = await axios.get(ApiUrl);
     setIsLoading(false);
     setUsers(response.data.results);
   }
