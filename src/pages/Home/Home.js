@@ -4,20 +4,52 @@ import UserList from "../../components/UserList/UserList";
 import { usePeopleFetch } from "../../hooks/usePeopleFetch";
 import * as S from "./style";
 
-const Home = () => {
+const Home = ({ tab }) => {
+  const [initial, setInitial] = useState(true);
+
+  const [seed, setSeed] = useState("");
   const [countries, setCountries] = useState([]);
 
   const { users, isLoading, fetchUsers } = usePeopleFetch();
 
   useEffect(() => {
-    fetchUsers(countries);
-  }, [countries]);
+    if (initial) {
+      const seedInLocalStorage = localStorage.getItem("seed");
+      const countriesInLocalStorage = localStorage.getItem("countries");
+
+      if (seedInLocalStorage) {
+        setSeed(seedInLocalStorage || "");
+      }
+
+      if (countriesInLocalStorage) {
+        setCountries(JSON.parse(countriesInLocalStorage) || []);
+      }
+
+      if (!(seedInLocalStorage || countriesInLocalStorage)) {
+        fetchUsers(countries);
+      }
+
+      setInitial(false);
+    } else {
+      fetchUsers(countries, seed);
+    }
+  }, [countries, seed]);
 
   const toggleCountry = (c) => {
     if (countries.includes(c)) {
-      setCountries(countries.filter((country) => country !== c));
+      setCountries((countries) => {
+        const newList = countries.filter((country) => country !== c);
+
+        localStorage.setItem("countries", JSON.stringify(newList));
+        return newList;
+      });
     } else {
-      setCountries((countries) => [...countries, c]);
+      setCountries((countries) => {
+        const newList = [...countries, c];
+
+        localStorage.setItem("countries", JSON.stringify(newList));
+        return newList;
+      });
     }
   };
 
@@ -29,7 +61,13 @@ const Home = () => {
             PplFinder
           </Text>
         </S.Header>
-        <UserList users={users} isLoading={isLoading} toggleCountry={toggleCountry} />
+        <UserList
+          tab={tab}
+          users={users}
+          isLoading={isLoading}
+          countries={countries}
+          toggleCountry={toggleCountry}
+        />
       </S.Content>
     </S.Home>
   );
